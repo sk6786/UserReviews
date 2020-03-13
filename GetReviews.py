@@ -2,10 +2,20 @@ from selenium import webdriver
 from collections import defaultdict
 import time
 import CreateCSV
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+
 
 def main(url):
-    driver = webdriver.Chrome(executable_path=r"C:\Users\Saad\Documents\chromedriver.exe")
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    driver = webdriver.Chrome(options=chrome_options, executable_path=r"C:\Users\Saad\Documents\chromedriver.exe")
     driver.get(url)
+    time.sleep(3)
+    for i in range(0,100):
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(2)
     review_chunks = driver.find_elements_by_class_name("ember-view")
     time.sleep(1)
     review_chunks = driver.find_elements_by_css_selector("div[role = 'article']")
@@ -13,9 +23,9 @@ def main(url):
     for review_chunk in review_chunks:
         review = defaultdict(list)
         print(review_chunk.text)
-        reviews = review_chunk.find_elements_by_class_name("we-customer-review__body")
+        reviews = review_chunk.find_elements_by_class_name("we-clamp")
         user_review_str = get_p_tags(reviews[0])
-        if len(reviews) >1:
+        if len(reviews) > 1:
             review["relevant"] = 1
             developer_review = get_p_tags(reviews[1])
             review["developer"] = developer_review
@@ -27,12 +37,13 @@ def main(url):
     CreateCSV.create(list_reviews)
 
 def get_p_tags(elem):
-    p_tag_str =''
+    p_tag_str = ''
     p_tags = elem.find_elements_by_tag_name("p")
     for i in p_tags:
-        text= i.text.strip()
+        text = i.get_attribute("innerHTML").strip()
         if text:
-            p_tag_str += text
+            p_tag_str += text + " "
+    p_tag_str = p_tag_str.strip()
     return p_tag_str
 
 # structure = [
