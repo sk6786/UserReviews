@@ -5,6 +5,7 @@ import CreateCSV
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+import re
 
 
 def main(url):
@@ -31,7 +32,7 @@ def main(url):
             review["developer"] = developer_review
         else:
             review["relevant"] = 0
-            review["developer"] = ""
+            review["developer"] = "n/a"
         review["user"] = user_review_str
         list_reviews.append(review)
     CreateCSV.create(list_reviews)
@@ -44,8 +45,12 @@ def get_p_tags(elem):
         if text:
             p_tag_str += text + " "
     p_tag_str = p_tag_str.strip()
-    return p_tag_str
+    return strip_non_ascii(p_tag_str)
 
+def strip_non_ascii(string):
+    ''' Returns the string without non ASCII characters'''
+    stripped = (c for c in string if 0 < ord(c) < 127)
+    return ''.join(stripped)
 # structure = [
 #
 #     {
